@@ -13,10 +13,45 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="资源文件\input">
+      <UniqueIdentifier>{6140717e-e9fc-43df-89a0-fba30e5a6e0d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="csp.cpp">
+    <ClCompile Include="src\csp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="input\input0.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input1.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input2.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input3.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input4.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input5.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input6.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input7.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input8.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="input\input9.txt">
+      <Filter>资源文件\input</Filter>
+    </Text>
   </ItemGroup>
 </Project>

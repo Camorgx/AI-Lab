@@ -18,6 +18,21 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\astar.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="input\input0.txt" />
+    <Text Include="input\input1.txt" />
+    <Text Include="input\input2.txt" />
+    <Text Include="input\input3.txt" />
+    <Text Include="input\input4.txt" />
+    <Text Include="input\input5.txt" />
+    <Text Include="input\input6.txt" />
+    <Text Include="input\input7.txt" />
+    <Text Include="input\input8.txt" />
+    <Text Include="input\input9.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -126,9 +141,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="astar.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
