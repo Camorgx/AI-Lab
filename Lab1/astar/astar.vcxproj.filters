@@ -16,6 +16,9 @@
     <Filter Include="资源文件\input">
       <UniqueIdentifier>{9fe09af4-8966-4282-9ece-17dddaed1b07}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件\output">
+      <UniqueIdentifier>{eee4eec1-3dbc-421c-95bb-f27a7f4d7c89}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\astar.cpp">
@@ -52,6 +55,9 @@
     </Text>
     <Text Include="input\input9.txt">
       <Filter>资源文件\input</Filter>
+    </Text>
+    <Text Include="output\output0.txt">
+      <Filter>资源文件\output</Filter>
     </Text>
   </ItemGroup>
 </Project>
