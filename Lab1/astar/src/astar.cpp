@@ -16,6 +16,7 @@ class solve {
 	class state {
 	public:
 		int g = 0;
+		int evaluate = 0;
 		const state* parent = nullptr;
 		vector<vector<bool>> data;
 
@@ -26,16 +27,17 @@ class solve {
 			int res = 0;
 			for (const auto& line : data)
 				for (const auto& point : line)
-					res += point;
-			return res / 3;
+					res += int(point);
+			return res;
 		}
 
 		int h() const {
 			return loss() / 3;
 		}
 
+		// std::priority_queue defaults to a large root heap  
 		bool operator<(const state& ano) const {
-			return f() < ano.f();
+			return evaluate > ano.evaluate;
 		}
 
 		bool operator==(const state& ano) const {
@@ -43,7 +45,7 @@ class solve {
 		}
 
 		// turn with method s at point (x, y)
-		void toward(int x, int y, int s) {
+		bool toward(int x, int y, int s) {
 			constexpr int x_trans[][3] = {
 				{0, 0, -1},
 				{0, -1, 0},
@@ -56,16 +58,35 @@ class solve {
 				{0, -1, 0},
 				{0, 0, 1}
 			};
+			bool valid = true;
 			for (int i = 0; i < 3; ++i) {
 				int new_x = x + x_trans[s][i];
 				int new_y = y + y_trans[s][i];
-				if (new_x >= 0 && new_x < n
-					&& new_y >= 0 && new_y < n)
-					data[new_x][new_y] = !data[new_x][new_y];
+				if (new_x < 0 || new_x >= n || new_y < 0 || new_y >= n)
+					valid = false;
 			}
+			if (valid) {
+				for (int i = 0; i < 3; ++i) {
+					int new_x = x + x_trans[s][i];
+					int new_y = y + y_trans[s][i];
+					data[new_x][new_y] = !data[new_x][new_y];
+				}
+			}
+			return valid;
+		}
+
+		std::string to_string() const {
+			std::string res;
+			for (const auto& line : data) {
+				for (const auto& point : line)
+					res += std::format("{} ", int(point));
+				res += '\n';
+			}
+			return res;
 		}
 	};
 
+	// hash function for state, used in std::unordered_map
 	struct state_hasher {
 		size_t operator()(const state& val) const noexcept {
 			size_t res = 0;
@@ -93,45 +114,23 @@ class solve {
 					diff.emplace_back(std::make_tuple(i, j));
 			}
 		}
-		if (diff.size() == 1) {
-			auto& [x, y] = diff[0];
-			if (x == 0 && y == 0) return std::make_tuple(x, y, 1);
-			if (x == 0 && y == n - 1) return std::make_tuple(x, y, 0);
-			if (x == n - 1 && y == 0) return std::make_tuple(x, y, 2);
-			else return std::make_tuple(x, y, 3);
-		}
-		if (diff.size() == 2) {
-			if (diff[0] > diff[1]) std::swap(diff[0], diff[1]);
-			auto& [x1, y1] = diff[0];
-			auto& [x2, y2] = diff[1];
-			if (x1 == x2) {
-				if (x1 == 0) return std::make_tuple(x1, y1, 0);
-				else return std::make_tuple(x1, y1, 3);
-			}
-			if (y1 == y2) {
-				if (y1 == 0) return std::make_tuple(x1, y1, 2);
-				else return std::make_tuple(x1, y1, 3);
-			}
+		/*
+		* s == 1: (i-1,j), (i,j), (i,j+1);
+		* s == 2: (i-1,j), (i,j-1), (i,j);
+		* s == 3: (i,j-1), (i,j), (i+1,j);
+		* s == 4: (i,j), (i,j+1), (i+1,j).
+		*/
+		std::sort(diff.begin(), diff.end());
+		auto& [x1, y1] = diff[0];
+		auto& [x2, y2] = diff[1];
+		auto& [x3, y3] = diff[2];
+		if (x1 != x2) {
+			if (y1 == y2) return std::make_tuple(x2, y2, 0);
+			else return std::make_tuple(x3, y3, 1);
 		}
 		else {
-			/*
-			* s == 1: (i-1,j), (i,j), (i,j+1);
-			* s == 2: (i-1,j), (i,j-1), (i,j);
-			* s == 3: (i,j-1), (i,j), (i+1,j);
-			* s == 4: (i,j), (i,j+1), (i+1,j).
-			*/
-			std::sort(diff.begin(), diff.end());
-			auto& [x1, y1] = diff[0];
-			auto& [x2, y2] = diff[1];
-			auto& [x3, y3] = diff[2];
-			if (x1 != x2) {
-				if (y1 == y2) return std::make_tuple(x2, y2, 0);
-				else return std::make_tuple(x3, y3, 1);
-			}
-			else {
-				if (y2 == y3) return std::make_tuple(x2, y2, 2);
-				else return std::make_tuple(x1, y1, 3);
-			}
+			if (y2 == y3) return std::make_tuple(x2, y2, 2);
+			else return std::make_tuple(x1, y1, 3);
 		}
 		return std::make_tuple(-1, -1, -1);
 	}
@@ -148,7 +147,7 @@ class solve {
 		fout << ans.size() << '\n';
 		for (auto method = ans.rbegin(); method != ans.rend(); ++method) {
 			auto& [x, y, s] = *method;
-			fout << std::format("{},{},{}\n", x, y, s);
+			fout << std::format("{},{},{}\n", x, y, s + 1);
 		}
 		fout.close();
 	}
@@ -166,6 +165,7 @@ public:
 			}
 			init_state.data.emplace_back(std::move(line));
 		}
+		init_state.evaluate = init_state.f();
 		fin.close();
 	}
 
@@ -183,12 +183,14 @@ public:
 			for (int i = 0; i < n; ++i) {
 				for (int j = 0; j < n; ++j) {
 					for (int s = 0; s < 4; ++s) {
-						cur.toward(i, j, s);
-						if (close_set.find(cur) == close_set.end()) {
-							cur.parent = &(*cur_iter);
-							open_set.push(cur);
+						if (cur.toward(i, j, s)) {
+							if (close_set.find(cur) == close_set.end()) {
+								cur.evaluate = cur.f();
+								cur.parent = &(*cur_iter);
+								open_set.push(cur);
+							}
+							cur.toward(i, j, s);
 						}
-						cur.toward(i, j, s);
 					}
 				}
 			}
