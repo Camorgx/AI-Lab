@@ -59,5 +59,32 @@
     <Text Include="output\output0.txt">
       <Filter>资源文件\output</Filter>
     </Text>
+    <Text Include="output\output1.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output2.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output3.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output4.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output5.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output6.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output7.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output8.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
+    <Text Include="output\output9.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -196,10 +196,34 @@ public:
 			}
 		}
 	}
+
+	void verify() const {
+		state init(init_state);
+		auto path = std::format("output/output{}.txt", test_case);
+		std::ifstream fin(path);
+		int step;
+		fin >> step;
+		for (int i = 0; i < step; ++i) {
+			int x, y, s;
+			char ch;
+			fin >> x >> ch >> y >> ch >> s;
+			init.toward(x, y, s - 1);
+		}
+		if (init.loss() == 0)
+			std::cout << std::format("Test case {} passed.", test_case) << std::endl;
+		else {
+			std::cout << std::format("Test case {} failed.\n", test_case);
+			std::cout << "Final state:\n";
+			std::cout << init.to_string() << std::endl;
+		}
+	}
 };
 
 int main() {
-	solve input0(0);
-	input0.astar();
+	for (int i = 0; i < 10; ++i) {
+		solve solver(i);
+		solver.astar();
+		solver.verify();
+	}
 	return 0;
 }
