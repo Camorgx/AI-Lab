@@ -16,6 +16,9 @@
     <Filter Include="资源文件\input">
       <UniqueIdentifier>{6140717e-e9fc-43df-89a0-fba30e5a6e0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="资源文件\output">
+      <UniqueIdentifier>{96b4dcec-c35b-4f28-9d5e-75843f30abba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\csp.cpp">
