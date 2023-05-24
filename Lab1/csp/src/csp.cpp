@@ -16,17 +16,16 @@ class solve {
 	int test_case = 0;
 	int staff_num = 0, days_num = 0, shifts_num = 0;
 	int least_dis = 0;
+	// distributed table
 	vector<vector<int>> shifts;
-	using size_pos_tuple = std::tuple<size_t, int, int>; // domain size, day, slot
-	using domain_size_heap = priority_queue<size_pos_tuple, 
-		vector<size_pos_tuple>, std::greater<size_pos_tuple>>;
-	domain_size_heap avaiable;
 	// in day d, slot s, staff that is available
 	vector<vector<unordered_set<int>>> domain;
 	// times that a staff is distributed
 	vector<int> dis_count; 
 	// slot that nobody would like to work
 	vector<std::tuple<int, int>> nobody_slot;
+	// whether the slot has been distributed
+	vector<vector<bool>> has_dis;
 
 	bool csp_check() const {
 		for (int count : dis_count) {
@@ -56,6 +55,21 @@ class solve {
 		fout << staff_num * days_num - unmet_req_cnt << std::endl;
 		fout.close();
 	}
+
+	std::tuple<size_t, size_t> get_pos() const {
+		size_t choice_cnt = staff_num + 1, day = 0, slot = 0;
+		for (int i = 0; i < days_num; ++i) {
+			for (int j = 0; j < shifts_num; ++j) {
+				if (size_t size = domain[i][j].size();
+					!has_dis[i][j] && size < choice_cnt) {
+					choice_cnt = size;
+					day = i;
+					slot = j;
+				}
+			}
+		}
+		return std::make_tuple(day, slot);
+	}
 public:
 	solve(int test_case) : test_case(test_case) {
 		auto path = std::format("input/input{}.txt", test_case);
@@ -67,6 +81,7 @@ public:
 		for (int i = 0; i < days_num; ++i) {
 			domain.emplace_back(shifts_num);
 			shifts.emplace_back(shifts_num);
+			has_dis.emplace_back(shifts_num);
 		}
 		for (int i = 0; i < staff_num; ++i) {
 			for (int j = 0; j < days_num; ++j) {
@@ -81,27 +96,24 @@ public:
 		fin.close();
 		for (int i = 0; i < days_num; ++i) 
 			for (int j = 0; j < shifts_num; ++j) {
-				size_t candi_cnt = domain[i][j].size();
-				if (candi_cnt == 0) {
-					candi_cnt = staff_num;
+				if (domain[i][j].size() == 0) {
 					nobody_slot.emplace_back(std::make_tuple(i, j));
 					for (int s = 0; s < staff_num; ++s)
 						domain[i][j].insert(s);
 				}
-				avaiable.push(std::make_tuple(candi_cnt, i, j));
 			}
 	}
 
-	bool csp_search() {
-		if (avaiable.empty()) {
+	bool csp_search(int dis_cnt = 0) {
+		if (dis_cnt == days_num * shifts_num) {
 			if (csp_check()) {
 				print();
 				return true;
 			}
 			else return false;
 		}
-		auto [d_size, day, slot] = avaiable.top();
-		avaiable.pop();
+		auto [day, slot] = get_pos();
+		has_dis[day][slot] = true;
 		vector<int> candidates(domain[day][slot].begin(), domain[day][slot].end());
 		for (int candidate : candidates) {
 			int origin = shifts[day][slot];
@@ -112,13 +124,13 @@ public:
 			if (slot < shifts_num - 1) 
 				next_erase_cnt = domain[day][slot + 1].erase(candidate);
 			++dis_count[candidate];
-			if (csp_search()) return true;
+			if (csp_search(dis_cnt + 1)) return true;
 			--dis_count[candidate];
 			if (pre_erase_cnt) domain[day][slot - 1].insert(candidate);
 			if (next_erase_cnt) domain[day][slot + 1].insert(candidate);
 			shifts[day][slot] = origin;
 		}
-		avaiable.push(std::make_tuple(d_size, day, slot));
+		has_dis[day][slot] = false;
 		return false;
 	}
 };
