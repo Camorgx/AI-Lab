@@ -56,5 +56,8 @@
     <Text Include="input\input9.txt">
       <Filter>资源文件\input</Filter>
     </Text>
+    <Text Include="output\output0.txt">
+      <Filter>资源文件\output</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -41,7 +41,7 @@ class solve {
 		std::ofstream fout(path);
 		for (const auto& line : shifts) 
 			for (int i = 0; i < shifts_num; ++i) 
-				fout << line[i] + 1 << (i != shifts_num - 1) ? ',' : '\n';
+				fout << (line[i] + 1) << ((i != shifts_num - 1) ? ',' : '\n');
 		for (const auto& [day, slot] : nobody_slot)
 			domain[day][slot].clear();
 		int unmet_req_cnt = 0;
@@ -102,7 +102,8 @@ public:
 		}
 		auto [d_size, day, slot] = avaiable.top();
 		avaiable.pop();
-		for (int candidate : domain[day][slot]) {
+		vector<int> candidates(domain[day][slot].begin(), domain[day][slot].end());
+		for (int candidate : candidates) {
 			int origin = shifts[day][slot];
 			shifts[day][slot] = candidate;
 			size_t pre_erase_cnt = 0, next_erase_cnt = 0;
@@ -123,9 +124,12 @@ public:
 };
 
 int main() {
-	solve solver(0);
-	if (solver.csp_search())
-		std::cout << "Valid schedule found." << std::endl;
-	else std::cout << "No valid schedule found." << std::endl;
+	for (int i = 0; i < 10; ++i) {
+		solve solver(i);
+		std::cout << std::format("Test case {}: ", i);
+		if (solver.csp_search())
+			std::cout << "Valid schedule found." << std::endl;
+		else std::cout << "No valid schedule found." << std::endl;
+	}
 	return 0;
 }

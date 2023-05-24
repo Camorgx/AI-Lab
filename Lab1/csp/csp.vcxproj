@@ -32,6 +32,7 @@
     <Text Include="input\input7.txt" />
     <Text Include="input\input8.txt" />
     <Text Include="input\input9.txt" />
+    <Text Include="output\output0.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
