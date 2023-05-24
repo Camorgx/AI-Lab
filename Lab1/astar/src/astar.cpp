@@ -1,3 +1,4 @@
+#include <cmath>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -12,6 +13,7 @@ using std::unordered_set;
 using std::vector;
 
 int n; // size of the map
+int test_case;
 
 class solve {
 	class state {
@@ -32,8 +34,37 @@ class solve {
 			return res;
 		}
 
+		size_t get_8_connect_size(int x, int y, vector<vector<bool>>& vis) const {
+			if (vis[x][y] || !data[x][y]) return 0;
+			vis[x][y] = true;
+			constexpr int x_trans[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
+			constexpr int y_trans[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
+			size_t res = 1;
+			for (int i = 0; i < 8; ++i) {
+				int new_x = x + x_trans[i];
+				int new_y = y + y_trans[i];
+				if (new_x < 0 || new_x >= n || new_y < 0 || new_y >= n)
+					continue;
+				if (vis[new_x][new_y]) continue;
+				res += get_8_connect_size(new_x, new_y, vis);
+			}
+			return res;
+		}
+
 		int h() const {
-			return loss() / 3;
+			if (test_case >= 6) return loss() * 6;
+			vector<vector<bool>> vis(n, vector<bool>(n));
+			double res = 0;
+			for (int i = 0; i < n; ++i) {
+				for (int j = 0; j < n; ++j) {
+					if (data[i][j] && !vis[i][j]) {
+						res += std::ceil(get_8_connect_size(i, j, vis) / 3.0);
+					}
+				}
+			}
+			int ret = static_cast<int>(res);
+			if ((loss() & 1) != (ret & 1)) ++ret;
+			return ret;
 		}
 
 		// std::priority_queue defaults to a large root heap  
@@ -101,7 +132,6 @@ class solve {
 		}
 	};
 
-	int test_case = 0;
 	state init_state;
 	priority_queue<state> open_set;
 	unordered_set<state, state_hasher> close_set;
@@ -153,7 +183,8 @@ class solve {
 		fout.close();
 	}
 public:
-	solve(int test_case) : test_case(test_case) {
+	solve(int t_case) {
+		test_case = t_case;
 		auto path = std::format("input/input{}.txt", test_case);
 		std::ifstream fin(path);
 		fin >> n;
