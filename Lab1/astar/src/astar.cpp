@@ -1,5 +1,4 @@
 #include <chrono>
-#include <cmath>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -58,7 +57,7 @@ class solve {
 			for (int i = 0; i < n; ++i) {
 				for (int j = 0; j < n; ++j) {
 					if (data[i][j] && !vis[i][j]) {
-						res += std::ceil(get_8_connect_size(i, j, vis) / 3.0);
+						res += (get_8_connect_size(i, j, vis) + 2) / 3;
 					}
 				}
 			}
