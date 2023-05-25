@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cmath>
 #include <format>
 #include <fstream>
@@ -52,7 +53,6 @@ class solve {
 		}
 
 		int h() const {
-			if (test_case >= 6) return loss() * 6;
 			vector<vector<bool>> vis(n, vector<bool>(n));
 			double res = 0;
 			for (int i = 0; i < n; ++i) {
@@ -78,6 +78,8 @@ class solve {
 
 		// turn with method s at point (x, y)
 		bool toward(int x, int y, int s) {
+			if (x < 0 || x >= n || y < 0 || y >= n)
+				return false;
 			constexpr int x_trans[][3] = {
 				{0, 0, -1},
 				{0, -1, 0},
@@ -212,18 +214,26 @@ public:
 			open_set.pop();
 			auto [cur_iter, status] = close_set.insert(cur);
 			++cur.g;
-			for (int i = 0; i < n; ++i) {
-				for (int j = 0; j < n; ++j) {
-					for (int s = 0; s < 4; ++s) {
-						if (cur.toward(i, j, s)) {
-							if (close_set.find(cur) == close_set.end()) {
-								cur.evaluate = cur.f();
-								cur.parent = &(*cur_iter);
-								open_set.push(cur);
-							}
-							cur.toward(i, j, s);
-						}
+			int i = 0, j = 0;
+			for (i = 0; i < n; ++i)
+				for (j = 0; j < n; ++j)
+					if (cur.data[i][j]) goto FOUND;
+			FOUND:
+			const std::tuple<int, int, int> possibility[] = {
+				{i, j, 0}, {i, j, 1}, {i, j, 2}, {i, j, 3},
+				{i, j + 1, 1}, {i, j + 1, 2},
+				{i + 1, j, 0}, {i + 1, j, 1},
+				{i - 1, j, 3}, 
+				{i, j - 1, 3}, {i, j - 1, 0},
+			};
+			for (const auto& [x, y, method] : possibility) {
+				if (cur.toward(x, y, method)) {
+					if (close_set.find(cur) == close_set.end()) {
+						cur.evaluate = cur.f();
+						cur.parent = &(*cur_iter);
+						open_set.push(cur);
 					}
+					cur.toward(x, y, method);
 				}
 			}
 		}
@@ -254,8 +264,15 @@ public:
 int main() {
 	for (int i = 0; i < 10; ++i) {
 		solve solver(i);
+		auto start = std::chrono::steady_clock::now();
 		solver.astar();
+		auto finish = std::chrono::steady_clock::now();
+		// get duration by ms
+		std::chrono::duration<double, std::milli> duration = finish - start;
+		std::cout << std::format("Computation of test {} finished in {}.\n", 
+			i, duration);
 		solver.verify();
+		std::cout << std::endl;
 	}
 	return 0;
 }

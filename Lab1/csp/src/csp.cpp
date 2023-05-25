@@ -116,7 +116,7 @@ public:
 		auto [day, slot] = get_pos();
 		has_dis[day][slot] = true;
 		vector<int> candidates(domain[day][slot].begin(), domain[day][slot].end());
-		std::sort(candidates.begin(), candidates.end(), [&](int a, int b) {
+		std::ranges::sort(candidates, [&](int a, int b) {
 			return dis_count[a] < dis_count[b];
 		});
 		for (int candidate : candidates) {
