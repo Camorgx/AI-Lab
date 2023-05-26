@@ -251,7 +251,9 @@ public:
 			init.toward(x, y, s - 1);
 		}
 		if (init.loss() == 0)
-			std::cout << std::format("Test case {} passed.", test_case) << std::endl;
+			std::cout << std::format("Test case {} passed. ", test_case)
+				<< std::format("Total step: {}.", step)
+				<< std::endl;
 		else {
 			std::cout << std::format("Test case {} failed.\n", test_case);
 			std::cout << "Final state:\n";
