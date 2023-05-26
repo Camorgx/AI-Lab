@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -53,6 +54,7 @@ class solve {
 			}
 			unmet_req_cnt += std::accumulate(unmet_req.begin(), unmet_req.end(), 0);
 		}
+		std::cout << std::format("{} requests unmet. ", unmet_req_cnt);
 		fout << staff_num * days_num - unmet_req_cnt << std::endl;
 		fout.close();
 	}
@@ -94,7 +96,6 @@ public:
 				}
 			}
 		}
-		fin.close();
 		for (int i = 0; i < days_num; ++i) 
 			for (int j = 0; j < shifts_num; ++j) {
 				if (domain[i][j].size() == 0) {
@@ -143,9 +144,12 @@ int main() {
 	for (int i = 0; i < 10; ++i) {
 		solve solver(i);
 		std::cout << std::format("Test case {}: ", i);
-		if (solver.csp_search())
-			std::cout << "Valid schedule found." << std::endl;
-		else std::cout << "No valid schedule found." << std::endl;
+		auto start = std::chrono::steady_clock::now();
+		solver.csp_search();
+		auto finish = std::chrono::steady_clock::now();
+		// get duration by ms
+		std::chrono::duration<double, std::milli> duration = finish - start;
+		std::cout << std::format("Time elapsed: {}", duration) << std::endl;
 	}
 	return 0;
 }
