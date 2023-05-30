@@ -46,16 +46,12 @@ class solve {
 		for (const auto& [day, slot] : nobody_slot)
 			domain[day][slot].clear();
 		int unmet_req_cnt = 0;
-		for (int i = 0; i < days_num; ++i) {
-			vector<int> unmet_req(staff_num);
-			for (int j = 0; j < shifts_num; ++j) {
-				unmet_req[shifts[i][j]] |=
-					int(domain[i][j].find(shifts[i][j]) == domain[i][j].end());
-			}
-			unmet_req_cnt += std::accumulate(unmet_req.begin(), unmet_req.end(), 0);
-		}
+		for (int i = 0; i < days_num; ++i)
+			for (int j = 0; j < shifts_num; ++j)
+				if (domain[i][j].find(shifts[i][j]) == domain[i][j].end())
+					++unmet_req_cnt;
 		std::cout << std::format("{} requests unmet. ", unmet_req_cnt);
-		fout << staff_num * days_num - unmet_req_cnt << std::endl;
+		fout << days_num * shifts_num - unmet_req_cnt << std::endl;
 		fout.close();
 	}
 
