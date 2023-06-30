@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
+import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as func
@@ -17,10 +18,11 @@ class CharTokenizer:
         self.n_vocab = len(corpus)
         self.encode_dict = dict()
         self.decode_dict = dict()
+        index = 0
         for word in corpus:
-            num = ord(word)
-            self.encode_dict[word] = num
-            self.decode_dict[num] = word
+            self.encode_dict[word] = index
+            self.decode_dict[index] = word
+            index += 1
         # End of your code
 
     def encode(self, string: str):
@@ -42,18 +44,19 @@ class Head(nn.Module):
         self.Query = nn.Linear(n_embd, head_size, bias=False)
         self.Value = nn.Linear(n_embd, head_size, bias=False)
         # End of your code
-        self.register_buffer("tril", torch.tril(torch.ones(block_size, block_size)))
+        self.register_buffer("tril", torch.tril(torch.ones((block_size, block_size), dtype=torch.bool)))
 
-    def forward(self, inputs, mask):
+    def forward(self, inputs):
         """
-        input: tensor(batch, time, n_embd)
-        return out: tensor(batch, time, head_size)
+        input: tensor(batch, block_size, n_embd)
+        return out: tensor(batch, block_size, head_size)
         """
         q = self.Query(inputs)
         k = self.Key(inputs)
         v = self.Value(inputs)
         scores = torch.matmul(q, k.transpose(-1, -2)) / math.sqrt(self.head_size)
-        scores.masked_fill_(mask, -1e9)
+        mask = torch.tril(torch.ones((scores.shape[1], scores.shape[2]), dtype=torch.bool)).to(device)
+        scores.masked_fill(mask, -1e9)
         attention = nn.Softmax(dim=-1)(scores)
         out = torch.matmul(attention, v)
         # End of your code
@@ -63,14 +66,17 @@ class Head(nn.Module):
 class MultiHeadAttention(nn.Module):
     def __init__(self, head_size):
         super().__init__()
+        self.head_size = head_size
         self.heads = nn.ModuleList([Head(head_size) for _ in range(n_heads)])
         self.linear = nn.Linear(n_heads * head_size, n_embd)
         self.layer_norm = nn.LayerNorm(n_embd)
         # End of your code
 
     def forward(self, inputs):
-        attentions = [head(inputs) for head in self.heads]
-        attentions = torch.cat(attentions, dim=1)
+        batch = inputs.shape[0]
+        attentions = torch.stack([head(inputs) for head in self.heads])
+        attentions = attentions.permute(1, 2, 0, 3)
+        attentions = attentions.transpose(1, 2).contiguous().view(batch, -1, n_heads * self.head_size)
         attentions = self.linear(attentions)
         out = self.layer_norm(attentions)
         return out
@@ -95,7 +101,7 @@ class FeedForward(nn.Module):
 class Block(nn.Module):
     def __init__(self):
         super().__init__()
-        self.self_attention = MultiHeadAttention(n_embd // n_heads)
+        self.self_attention = MultiHeadAttention(head_size=20)
         self.feed_forward = FeedForward()
         # End of your code
 
@@ -124,17 +130,19 @@ class Transformer(nn.Module):
             sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])
             return torch.FloatTensor(sinusoid_table)
 
+        self.emb = nn.Embedding(n_vocab, n_embd)
         self.pos_emb = get_encoding_table(block_size + 1)
         self.layers = nn.ModuleList([Block() for _ in range(n_layers)])
-        self.linear = nn.Linear(n_embd, n_vocab)
+        self.linear = nn.Linear(n_embd, n_vocab, bias=False)
         # End of your code
 
     def forward(self, inputs, labels=None):
         """
-        inputs: tensor(batch_size, block_size)
+        inputs: tensor(batch_size, context)
         """
         # embedding:(batch, context, embedding)
-        attention = inputs + torch.stack([self.pos_emb] * batch_size)
+        batch, context = inputs.shape
+        attention = self.emb(inputs) + torch.stack([self.pos_emb[:context]] * batch).to(device)
         for layer in self.layers:
             attention = layer(attention)
         logits = self.linear(attention)
@@ -151,8 +159,15 @@ class Transformer(nn.Module):
         return logits, loss
 
     def generate(self, inputs, max_new_tokens):
+        inputs = inputs[0].tolist()
         for _ in range(max_new_tokens):
-            inputs = self(inputs)
+            tensor = torch.stack([torch.tensor(inputs)]).to(device)
+            logits = self(tensor)[0]
+            softmax = func.softmax(logits, dim=-1)[0, 0]
+            res = random.choices(range(n_vocab), weights=softmax, k=1)[0]
+            inputs.append(res)
+            # generates new tokens by iteratively sampling from the model's predicted probability distribution,
+            # concatenating the sampled tokens to the input sequence, and returning the updated sequence.
         # End of your code
         return inputs
 
@@ -182,7 +197,7 @@ def estimate_loss(model):
 
 def generate(model):
     context = torch.zeros((1, 1), device=device, dtype=torch.long)
-    print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
+    print(decode(model.generate(context, max_new_tokens=200)))
 
 
 def train(model):
@@ -209,8 +224,8 @@ batch_size = 16
 block_size = 256
 max_iters = 5000  # set the number of training iterations as you like
 eval_interval = 50
-learning_rate = 1e-3
-device = "cuda" if torch.cuda.is_available() else "cpu"
+learning_rate = 1e-4
+device = "cpu" if not torch.cuda.is_available() else "cuda"
 eval_iters = 200
 n_embd = 64  # d_model
 n_heads = 8
