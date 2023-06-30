@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
+import pandas as pd
 import random
 import torch
 import torch.nn as nn
 import torch.nn.functional as func
+from tqdm import tqdm
 from typing import List
 
 
@@ -159,7 +161,6 @@ class Transformer(nn.Module):
         return logits, loss
 
     def generate(self, inputs, max_new_tokens):
-        inputs = inputs[0].tolist()
         for _ in range(max_new_tokens):
             tensor = torch.stack([torch.tensor(inputs)]).to(device)
             logits = self(tensor)[0]
@@ -195,21 +196,23 @@ def estimate_loss(model):
     return out
 
 
-def generate(model):
-    context = torch.zeros((1, 1), device=device, dtype=torch.long)
+def generate(model, prefix):
+    context = encode(prefix)
     print(decode(model.generate(context, max_new_tokens=200)))
 
 
 def train(model):
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    record = []
 
-    for it in range(max_iters):
+    for it in tqdm(range(max_iters)):
 
         if it % eval_interval == 0:
             losses = estimate_loss(model)
             print(
-                f"step {it}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}"
+                f"\nstep {it}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}"
             )
+            record.append([it, f"{losses['train']:.4f}", f"{losses['val']:.4f}"])
 
         inputs, labels = get_batch("train")
 
@@ -217,12 +220,14 @@ def train(model):
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
+    torch.save(model, '../output/model.pth')
+    pd.DataFrame(record, columns=['iter', 'train loss', 'val loss']).to_csv('../output/loss.csv', index=False)
 
 
 # define the hyperparameters
 batch_size = 16
 block_size = 256
-max_iters = 5000  # set the number of training iterations as you like
+max_iters = 100  # set the number of training iterations as you like
 eval_interval = 50
 learning_rate = 1e-4
 device = "cpu" if not torch.cuda.is_available() else "cuda"
@@ -246,7 +251,8 @@ n_vocab = tokenizer.n_vocab
 train_data = torch.tensor(encode(text[: -len(text) // 10]), dtype=torch.long)
 val_data = torch.tensor(encode(text[-len(text) // 10:]), dtype=torch.long)
 
-# define the model
-transformer = Transformer().to(device)
-train(transformer)
-generate(transformer)
+if __name__ == '__main__':
+    # define the model
+    transformer = Transformer().to(device)
+    train(transformer)
+    generate(transformer, "To be or not to be, ")
