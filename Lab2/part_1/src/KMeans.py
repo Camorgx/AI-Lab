@@ -38,11 +38,7 @@ class KMeans:
         points: (n_samples, n_dims,)
         return labels: (n_samples, )
         """
-        labels = [
-            np.argmin([np.linalg.norm(point - center, ord=2) for center in centers])
-            for point in points
-        ]
-        return np.array(labels, dtype=np.uint8)
+        return np.argmin(np.linalg.norm(points[:, np.newaxis] - centers, axis=2), axis=1)
 
     # Update the centers based on the new assignment of points
     def update_centers(self, labels, points):

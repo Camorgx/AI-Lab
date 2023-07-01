@@ -236,8 +236,8 @@ def train(model):
 # define the hyperparameters
 batch_size = 16
 block_size = 256
-max_iters = 5000  # set the number of training iterations as you like
-eval_interval = 50
+max_iters = 10000  # set the number of training iterations as you like
+eval_interval = 200
 learning_rate = 1e-4
 device = "cpu" if not torch.cuda.is_available() else "cuda"
 eval_iters = 200
